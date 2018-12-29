@@ -1,17 +1,21 @@
 package mikehoang.smartfurniture;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
-import retrofit2.http.Query;
 
 public interface Auth {
-    @POST("api/v1/login")
-    Call<Response> login(@Query("username") String username, @Query("password") String password);
+    @FormUrlEncoded
+    @POST("login/")
+    Call<ResponseBody> login(@Field("username") String username, @Field("password") String password);
 
-    @POST("api/v1/logout")
-    Call<Response> logout();
+    @FormUrlEncoded
+    @POST("logout/")
+    Call<ResponseBody> logout();
 
-    @POST("api/v1/register")
-    Call<Response> register(@Query("username") String username, @Query("email") String email, @Query("password1") String password1, @Query("password2") String password2);
+    @FormUrlEncoded
+    @POST("register/")
+    Call<ResponseBody> register(@Field("username") String username, @Field("email") String email, @Field("password1") String password1, @Field("password2") String password2);
 }
