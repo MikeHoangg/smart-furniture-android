@@ -4,29 +4,30 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.support.v7.app.AppCompatActivity;
-import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.util.List;
+import com.google.gson.Gson;
 
 import retrofit2.Call;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 
 public class LoginActivity extends AppCompatActivity {
-    private UserLoginTask mAuthTask = null;
     private EditText mUsernameView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private Auth authApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +46,13 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://127.0.0.1:8000/en/").build();
+        authApi = retrofit.create(Auth.class);
     }
 
 
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
         mUsernameView.setError(null);
         mPasswordView.setError(null);
 
@@ -78,8 +78,18 @@ public class LoginActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             showProgress(true);
-            mAuthTask = new UserLoginTask(username, password);
-            mAuthTask.execute((Void) null);
+            authApi.login(username, password).enqueue(new Callback<Response>() {
+                @Override
+                public void onResponse(Call<Response> call, Response<Response> response) {
+                    Log.e("TAG", "success: " + new Gson().toJson(response.body()));
+                }
+
+                @Override
+                public void onFailure(Call<Response> call, Throwable t) {
+                    Log.e("TAG", "fail: " + t.toString());
+                }
+            });
+            showProgress(false);
         }
     }
 
@@ -112,39 +122,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-        private final String mUsername;
-        private final String mPassword;
 
-        UserLoginTask(String username, String password) {
-            mUsername = username;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            } else {
-                mUsernameView.setError("response error");
-                mUsernameView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
 }
 
