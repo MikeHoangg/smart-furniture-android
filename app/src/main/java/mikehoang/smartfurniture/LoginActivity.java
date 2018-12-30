@@ -3,13 +3,13 @@ package mikehoang.smartfurniture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -92,7 +92,8 @@ public class LoginActivity extends AppCompatActivity {
                         if (response.body() != null) {
                             JsonObject successResponse = new JsonParser().parse(response.body().string()).getAsJsonObject();
                             String key = successResponse.get("key").getAsString();
-                            Preferences.setAccessToken(LoginActivity.this, key);
+                            Preferences.setAccessToken(LoginActivity.this, "Token " + key);
+                            LoginActivity.this.finish();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         } else if (response.errorBody() != null) {
                             JsonObject errorResponse = new JsonParser().parse(response.errorBody().string()).getAsJsonObject();
@@ -107,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                                 mPasswordView.setError(password_error.getAsString());
                         }
                     } catch (IOException e) {
+                        Log.d("error", e.toString());
                         mUsernameView.setError("An error occurred.");
                     } finally {
                         showProgress(false);
@@ -115,6 +117,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.d("server error", t.toString());
                     mUsernameView.setError("A server error occurred.");
                     showProgress(false);
                 }

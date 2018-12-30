@@ -10,7 +10,7 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface Option {
-    @POST("furniture/")
+    @POST("options/")
     Call<ResponseBody> createOptions(@Header("Authorization") String token, @Query("name") String name, @Query("type") String type, @Query("length") double length, @Query("height") double height, @Query("width") double width, @Query("incline") double incline, @Query("temperature") double temperature, @Query("rigidity") String rigidity, @Query("massage") String massage, @Query("creator") int creator);
 
     @GET("options/{id}/")
