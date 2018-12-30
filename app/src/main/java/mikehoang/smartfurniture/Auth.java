@@ -9,7 +9,8 @@ import retrofit2.http.POST;
 public interface Auth {
     @FormUrlEncoded
     @POST("login/")
-    Call<ResponseBody> login(@Field("username") String username, @Field("password") String password);
+    Call<ResponseBody> login(@Field("username") String username,
+                             @Field("password") String password);
 
     @FormUrlEncoded
     @POST("logout/")
@@ -17,5 +18,8 @@ public interface Auth {
 
     @FormUrlEncoded
     @POST("register/")
-    Call<ResponseBody> register(@Field("username") String username, @Field("email") String email, @Field("password1") String password1, @Field("password2") String password2);
+    Call<ResponseBody> register(@Field("username") String username,
+                                @Field("email") String email,
+                                @Field("password1") String password1,
+                                @Field("password2") String password2);
 }

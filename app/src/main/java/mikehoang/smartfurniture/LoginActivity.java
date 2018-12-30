@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -93,7 +94,6 @@ public class LoginActivity extends AppCompatActivity {
                             JsonObject successResponse = new JsonParser().parse(response.body().string()).getAsJsonObject();
                             String key = successResponse.get("key").getAsString();
                             Preferences.setAccessToken(LoginActivity.this, "Token " + key);
-                            LoginActivity.this.finish();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         } else if (response.errorBody() != null) {
                             JsonObject errorResponse = new JsonParser().parse(response.errorBody().string()).getAsJsonObject();
@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
                             JsonElement username_error = errorResponse.get("username");
                             JsonElement password_error = errorResponse.get("password");
                             if (non_field_error != null)
-                                mUsernameView.setError(non_field_error.getAsString());
+                                Toast.makeText(LoginActivity.this, non_field_error.getAsString(), Toast.LENGTH_LONG).show();
                             if (username_error != null)
                                 mUsernameView.setError(username_error.getAsString());
                             if (password_error != null)
@@ -109,8 +109,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     } catch (IOException e) {
                         Log.d("error", e.toString());
-                        mUsernameView.setError("An error occurred.");
+                        Toast.makeText(LoginActivity.this, "An error occurred.", Toast.LENGTH_LONG).show();
                     } finally {
+                        LoginActivity.this.finish();
                         showProgress(false);
                     }
                 }
@@ -118,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
                     Log.d("server error", t.toString());
-                    mUsernameView.setError("A server error occurred.");
+                    Toast.makeText(LoginActivity.this, "A server error occurred.", Toast.LENGTH_LONG).show();
                     showProgress(false);
                 }
             });

@@ -8,8 +8,8 @@ import retrofit2.http.GET;
 
 public interface Types {
     @GET("furniture-types/")
-    Call<List<ResponseBody>> getFurnitureTypes();
+    Call<ResponseBody> getFurnitureTypes();
 
     @GET("massage-rigidity-types/")
-    Call<List<ResponseBody>> getRigidityMassageTypes();
+    Call<ResponseBody> getRigidityMassageTypes();
 }
