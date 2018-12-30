@@ -66,6 +66,7 @@ public class OptionsActionFragment extends Fragment {
         mOptionsForm = v.findViewById(R.id.options_form);
         mProgressView = v.findViewById(R.id.options_progress);
         parent = (MainActivity) getActivity();
+
         Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
         optionsApi = retrofit.create(Option.class);
 

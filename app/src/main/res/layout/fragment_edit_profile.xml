@@ -96,7 +96,8 @@
                     android:hint="@string/prompt_height"
                     android:inputType="numberDecimal"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="0" />
 
             </android.support.design.widget.TextInputLayout>
 

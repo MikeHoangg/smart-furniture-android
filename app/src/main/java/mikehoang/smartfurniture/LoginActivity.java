@@ -95,6 +95,7 @@ public class LoginActivity extends AppCompatActivity {
                             String key = successResponse.get("key").getAsString();
                             Preferences.setAccessToken(LoginActivity.this, "Token " + key);
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            LoginActivity.this.finish();
                         } else if (response.errorBody() != null) {
                             JsonObject errorResponse = new JsonParser().parse(response.errorBody().string()).getAsJsonObject();
                             JsonElement non_field_error = errorResponse.get("non_field_errors");
@@ -111,7 +112,6 @@ public class LoginActivity extends AppCompatActivity {
                         Log.d("error", e.toString());
                         Toast.makeText(LoginActivity.this, "An error occurred.", Toast.LENGTH_LONG).show();
                     } finally {
-                        LoginActivity.this.finish();
                         showProgress(false);
                     }
                 }
