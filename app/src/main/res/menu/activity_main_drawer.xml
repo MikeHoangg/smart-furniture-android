@@ -9,9 +9,17 @@
             android:icon="@drawable/ic_furniture"
             android:title="@string/nav_item_furniture" />
         <item
+            android:id="@+id/nav_add_furniture"
+            android:icon="@drawable/ic_add"
+            android:title="@string/action_add_furniture" />
+        <item
             android:id="@+id/nav_options"
             android:icon="@drawable/ic_options"
             android:title="@string/nav_item_options" />
+        <item
+            android:id="@+id/nav_add_options"
+            android:icon="@drawable/ic_add"
+            android:title="@string/action_add_options" />
         <item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_edit_profile"
