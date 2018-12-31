@@ -12,7 +12,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -54,18 +53,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        if (savedInstanceState == null){
-            MainActivity.this.setTitle("Furniture");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_furniture);
-        }
-
         Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
         userApi = retrofit.create(User.class);
         typesApi = retrofit.create(Types.class);
         getCurrentUser();
         getFurnitureTypes();
         getRigidityMassageTypes();
+
+        if (savedInstanceState == null && user != null) {
+            setFirstPage(navigationView);
+        }
+    }
+
+    private void setFirstPage(NavigationView navigationView) {
+        MainActivity.this.setTitle("Furniture");
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureFragment()).commit();
+        navigationView.setCheckedItem(R.id.nav_furniture);
     }
 
     public void getCurrentUser() {
@@ -169,30 +172,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_furniture) {
+        if (id == R.id.nav_apply && user != null) {
+            MainActivity.this.setTitle("Apply furniture settings");
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Apply()).commit();
+        } else if (id == R.id.nav_discard && user != null) {
+            MainActivity.this.setTitle("Discard furniture settings");
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Discard()).commit();
+        } else if (id == R.id.nav_furniture && user != null) {
             MainActivity.this.setTitle("Furniture");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureFragment()).commit();
-        } else if (id == R.id.nav_add_furniture) {
+        } else if (id == R.id.nav_add_furniture && user != null) {
             MainActivity.this.setTitle("Add furniture");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureActionFragment()).commit();
-        } else if (id == R.id.nav_options) {
+        } else if (id == R.id.nav_options && user != null) {
             MainActivity.this.setTitle("Furniture options");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OptionsFragment()).commit();
-        }else if (id == R.id.nav_add_options) {
+        } else if (id == R.id.nav_add_options && user != null) {
             MainActivity.this.setTitle("Add furniture options");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OptionsActionFragment()).commit();
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_manage && user != null) {
             MainActivity.this.setTitle("Edit profile");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new EditProfileFragment()).commit();
-        } else if (id == R.id.nav_logout) {
+        } else if (id == R.id.nav_logout && user != null) {
             Preferences.setAccessToken(MainActivity.this, null);
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
             MainActivity.this.finish();
         }
-        //Toast.makeText(this, "changed",Toast.LENGTH_SHORT).show();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
