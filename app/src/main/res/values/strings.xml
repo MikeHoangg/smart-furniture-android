@@ -19,12 +19,16 @@
     <string name="prompt_brand">Brand</string>
     <string name="prompt_type">Type</string>
     <string name="prompt_is_public">Is public</string>
+    <string name="prompt_furniture">Furniture</string>
+    <string name="prompt_options">Options</string>
 
     <string name="action_add_options">Add options</string>
     <string name="action_add_furniture">Add furniture</string>
     <string name="action_sign_in">Log in</string>
     <string name="action_save">Save</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_discard">Discard</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -35,7 +39,12 @@
     <string name="nav_item_options">Furniture options</string>
     <string name="nav_item_edit_profile">Edit profile</string>
     <string name="nav_item_logout">Logout</string>
+    <string name="nav_item_apply">Apply furniture settings</string>
+    <string name="nav_item_discard">Discard furniture settings</string>
 
     <string name="error_field_required">This field is required</string>
+    <string name="error_no_furniture">You have no furniture of this type</string>
+    <string name="error_no_options">You have no options of this type</string>
+    <string name="error_no_curr_furniture">You have no furniture in use</string>
 
 </resources>
