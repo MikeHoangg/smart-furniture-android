@@ -2,6 +2,8 @@ package mikehoang.smartfurniture;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,6 +14,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -30,12 +33,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private User userApi;
-    private Types typesApi;
     public List<JsonObject> furnitureTypes;
     public List<JsonObject> rigidityTypes;
     public List<JsonObject> massageTypes;
     public JsonObject user;
+    public API api;
+    public String key;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,17 +48,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this,
+                drawer,
+                toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
-        userApi = retrofit.create(User.class);
-        typesApi = retrofit.create(Types.class);
+        key = Preferences.getAccessToken(MainActivity.this);
+
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(API.BASE_URL).build();
+        api = retrofit.create(API.class);
+
         getCurrentUser();
         getFurnitureTypes();
         getRigidityMassageTypes();
@@ -66,19 +73,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setFirstPage(NavigationView navigationView) {
-        MainActivity.this.setTitle("Furniture");
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureFragment()).commit();
+        MainActivity.this.setTitle(R.string.nav_item_furniture);
+        getSupportFragmentManager().beginTransaction().
+                replace(R.id.fragment, new FurnitureFragment()).commit();
         navigationView.setCheckedItem(R.id.nav_furniture);
     }
 
-    public void getCurrentUser() {
-        userApi.getCurrentUser(Preferences.getAccessToken(MainActivity.this)).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    if (response.body() != null) {
-                        user = new JsonParser().parse(response.body().string()).getAsJsonObject();
+    public static JsonElement getJsonResponse(final ResponseBody obj, final AppCompatActivity activity) {
+        try {
+            return new JsonParser().parse(obj.string());
+        } catch (IOException e) {
+            Log.d("error", e.toString());
+            Toast.makeText(activity, R.string.error_unknown,
+                    Toast.LENGTH_LONG).show();
+            return null;
+        }
+    }
 
+    public void getCurrentUser() {
+        api.getCurrentUser(key).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.body() != null) {
+                    JsonElement res = getJsonResponse(response.body(), MainActivity.this);
+                    if (res != null) {
+                        user = res.getAsJsonObject();
                         TextView username = (TextView) findViewById(R.id.text_username);
                         username.setText(user.get("username").getAsString());
 
@@ -93,27 +113,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Picasso.get().load(user.get("image").getAsString()).into(image);
                         }
                     }
-                } catch (IOException e) {
-                    Log.d("error", e.toString());
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 Log.d("server error", t.toString());
+                Toast.makeText(MainActivity.this, R.string.response_fail_server,
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
 
     private void getRigidityMassageTypes() {
-        typesApi.getRigidityMassageTypes().enqueue(new Callback<ResponseBody>() {
+        api.getRigidityMassageTypes().enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    rigidityTypes = new ArrayList<JsonObject>();
-                    massageTypes = new ArrayList<JsonObject>();
-                    if (response.body() != null) {
-                        JsonArray list = new JsonParser().parse(response.body().string()).getAsJsonArray();
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                rigidityTypes = new ArrayList<JsonObject>();
+                massageTypes = new ArrayList<JsonObject>();
+                if (response.body() != null) {
+                    JsonElement res = getJsonResponse(response.body(), MainActivity.this);
+                    if (res != null) {
+                        JsonArray list = res.getAsJsonArray();
                         for (JsonElement el : list) {
                             JsonObject obj = el.getAsJsonObject();
                             if (obj.get("type").getAsString().equals("massage"))
@@ -121,39 +143,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             else
                                 rigidityTypes.add(obj);
                         }
-
                     }
-                } catch (IOException e) {
-                    Log.d("error", e.toString());
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 Log.d("server error", t.toString());
             }
         });
     }
 
     private void getFurnitureTypes() {
-        typesApi.getFurnitureTypes().enqueue(new Callback<ResponseBody>() {
+        api.getFurnitureTypes().enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    furnitureTypes = new ArrayList<JsonObject>();
-                    if (response.body() != null) {
-                        JsonArray list = new JsonParser().parse(response.body().string()).getAsJsonArray();
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                furnitureTypes = new ArrayList<JsonObject>();
+                if (response.body() != null) {
+                    JsonElement res = getJsonResponse(response.body(), MainActivity.this);
+                    if (res != null) {
+                        JsonArray list = res.getAsJsonArray();
                         for (JsonElement el : list) {
-                            furnitureTypes.add(el.getAsJsonObject());
+                            JsonObject obj = el.getAsJsonObject();
+                            furnitureTypes.add(obj);
                         }
                     }
-                } catch (IOException e) {
-                    Log.d("error", e.toString());
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 Log.d("server error", t.toString());
             }
         });
@@ -162,42 +182,62 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
+        if (drawer.isDrawerOpen(GravityCompat.START))
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        else
             super.onBackPressed();
-        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.nav_apply && user != null) {
-            MainActivity.this.setTitle("Apply furniture settings");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Apply()).commit();
-        } else if (id == R.id.nav_discard && user != null) {
-            MainActivity.this.setTitle("Discard furniture settings");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Discard()).commit();
-        } else if (id == R.id.nav_furniture && user != null) {
-            MainActivity.this.setTitle("Furniture");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureFragment()).commit();
-        } else if (id == R.id.nav_add_furniture && user != null) {
-            MainActivity.this.setTitle("Add furniture");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FurnitureActionFragment()).commit();
-        } else if (id == R.id.nav_options && user != null) {
-            MainActivity.this.setTitle("Furniture options");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OptionsFragment()).commit();
-        } else if (id == R.id.nav_add_options && user != null) {
-            MainActivity.this.setTitle("Add furniture options");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OptionsActionFragment()).commit();
-        } else if (id == R.id.nav_manage && user != null) {
-            MainActivity.this.setTitle("Edit profile");
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new EditProfileFragment()).commit();
-        } else if (id == R.id.nav_logout && user != null) {
-            Preferences.setAccessToken(MainActivity.this, null);
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            MainActivity.this.finish();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (user != null) {
+            switch (id) {
+                case R.id.nav_apply:
+                    MainActivity.this.setTitle(R.string.nav_item_apply);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new Apply()).commit();
+                    break;
+                case R.id.nav_discard:
+                    MainActivity.this.setTitle(R.string.nav_item_discard);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new Discard()).commit();
+                    break;
+                case R.id.nav_furniture:
+                    MainActivity.this.setTitle(R.string.nav_item_furniture);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new FurnitureFragment()).commit();
+                    break;
+                case R.id.nav_add_furniture:
+                    MainActivity.this.setTitle(R.string.nav_item_add_furniture);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new FurnitureActionFragment()).commit();
+                    break;
+                case R.id.nav_options:
+                    MainActivity.this.setTitle(R.string.nav_item_options);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new OptionsFragment()).commit();
+                    break;
+                case R.id.nav_add_options:
+                    MainActivity.this.setTitle(R.string.nav_item_add_options);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new OptionsActionFragment()).commit();
+                    break;
+                case R.id.nav_manage:
+                    MainActivity.this.setTitle(R.string.nav_item_edit_profile);
+                    fragmentManager.beginTransaction().
+                            replace(R.id.fragment, new EditProfileFragment()).commit();
+                    break;
+                case R.id.nav_logout:
+                    Preferences.setAccessToken(MainActivity.this, null);
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                    MainActivity.this.finish();
+                    break;
+                default:
+                    break;
+            }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

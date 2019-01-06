@@ -21,9 +21,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,64 +29,65 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class OptionsActionFragment extends Fragment {
-    private EditText mNameView;
-    private Spinner mTypeView;
-    private EditText mHeightView;
-    private EditText mLengthView;
-    private EditText mWidthView;
-    private EditText mInclineView;
-    private EditText mTemperatureView;
-    private Spinner mRigidityView;
-    private Spinner mMassageView;
-    private Button mSaveButton;
-    private View mOptionsForm;
-    private View mProgressView;
+    private EditText nameField;
+    private Spinner typeField;
+    private EditText heightField;
+    private EditText lengthField;
+    private EditText widthField;
+    private EditText inclineField;
+    private EditText temperatureField;
+    private Spinner rigidityField;
+    private Spinner massageField;
+    private View formBlock;
+    private View progressBlock;
     private MainActivity parent;
-    private Option optionsApi;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_options_add_edit, container, false);
-        mNameView = v.findViewById(R.id.name);
-        mTypeView = v.findViewById(R.id.type);
-        mHeightView = v.findViewById(R.id.height);
-        mLengthView = v.findViewById(R.id.length);
-        mWidthView = v.findViewById(R.id.width);
-        mInclineView = v.findViewById(R.id.incline);
-        mTemperatureView = v.findViewById(R.id.temperature);
-        mRigidityView = v.findViewById(R.id.rigidity);
-        mMassageView = v.findViewById(R.id.massage);
-        mSaveButton = v.findViewById(R.id.save_button);
-        mOptionsForm = v.findViewById(R.id.options_form);
-        mProgressView = v.findViewById(R.id.options_progress);
+
+        nameField = v.findViewById(R.id.name);
+        typeField = v.findViewById(R.id.type);
+        heightField = v.findViewById(R.id.height);
+        lengthField = v.findViewById(R.id.length);
+        widthField = v.findViewById(R.id.width);
+        inclineField = v.findViewById(R.id.incline);
+        temperatureField = v.findViewById(R.id.temperature);
+        rigidityField = v.findViewById(R.id.rigidity);
+        massageField = v.findViewById(R.id.massage);
+        formBlock = v.findViewById(R.id.options_form);
+        progressBlock = v.findViewById(R.id.options_progress);
         parent = (MainActivity) getActivity();
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
-        optionsApi = retrofit.create(Option.class);
+        Button saveButton = v.findViewById(R.id.save_button);
 
         List<String> massageTypes = new ArrayList<String>();
         for (JsonObject obj : parent.massageTypes)
             massageTypes.add(obj.get("name").getAsString());
-        ArrayAdapter<String> massageAdapter = new ArrayAdapter<String>(parent, android.R.layout.simple_spinner_item, massageTypes);
-        mMassageView.setAdapter(massageAdapter);
+        ArrayAdapter<String> massageAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, massageTypes);
+        massageField.setAdapter(massageAdapter);
 
         List<String> rigidityTypes = new ArrayList<String>();
         for (JsonObject obj : parent.rigidityTypes)
             rigidityTypes.add(obj.get("name").getAsString());
-        ArrayAdapter<String> rigidityAdapter = new ArrayAdapter<String>(parent, android.R.layout.simple_spinner_item, rigidityTypes);
-        mRigidityView.setAdapter(rigidityAdapter);
+        ArrayAdapter<String> rigidityAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, rigidityTypes);
+        rigidityField.setAdapter(rigidityAdapter);
 
         List<String> types = new ArrayList<String>();
         for (JsonObject obj : parent.furnitureTypes)
             types.add(obj.get("name").getAsString());
-        ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent, android.R.layout.simple_spinner_item, types);
-        mTypeView.setAdapter(typesAdapter);
+        ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, types);
+        typeField.setAdapter(typesAdapter);
 
-        mSaveButton.setOnClickListener(new View.OnClickListener() {
+        saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptSave();
@@ -97,86 +96,58 @@ public class OptionsActionFragment extends Fragment {
         return v;
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mOptionsForm.setVisibility(show ? View.GONE : View.VISIBLE);
-            mOptionsForm.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mOptionsForm.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mOptionsForm.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
-    }
-
     private void attemptSave() {
-        mNameView.setError(null);
-        mHeightView.setError(null);
-        mLengthView.setError(null);
-        mWidthView.setError(null);
-        mInclineView.setError(null);
-        mTemperatureView.setError(null);
+        nameField.setError(null);
+        heightField.setError(null);
+        lengthField.setError(null);
+        widthField.setError(null);
+        inclineField.setError(null);
+        temperatureField.setError(null);
 
-        String name = mNameView.getText().toString();
-        String height = mHeightView.getText().toString();
-        String width = mWidthView.getText().toString();
-        String length = mLengthView.getText().toString();
-        String incline = mInclineView.getText().toString();
-        String temperature = mTemperatureView.getText().toString();
-        String massage = mMassageView.getSelectedItem().toString();
-        String type = mTypeView.getSelectedItem().toString();
-        String rigidity = mRigidityView.getSelectedItem().toString();
+        String name = nameField.getText().toString();
+        String height = heightField.getText().toString();
+        String width = widthField.getText().toString();
+        String length = lengthField.getText().toString();
+        String incline = inclineField.getText().toString();
+        String temperature = temperatureField.getText().toString();
+        String massage = massageField.getSelectedItem().toString();
+        String type = typeField.getSelectedItem().toString();
+        String rigidity = rigidityField.getSelectedItem().toString();
 
         boolean cancel = false;
         View focusView = null;
 
         if (TextUtils.isEmpty(name)) {
-            mNameView.setError(getString(R.string.error_field_required));
-            focusView = mNameView;
+            nameField.setError(getString(R.string.error_field_required));
+            focusView = nameField;
             cancel = true;
         }
 
         if (TextUtils.isEmpty(height)) {
-            mHeightView.setError(getString(R.string.error_field_required));
-            focusView = mHeightView;
+            heightField.setError(getString(R.string.error_field_required));
+            focusView = heightField;
             cancel = true;
         }
         if (TextUtils.isEmpty(width)) {
-            mWidthView.setError(getString(R.string.error_field_required));
-            focusView = mWidthView;
+            widthField.setError(getString(R.string.error_field_required));
+            focusView = widthField;
             cancel = true;
         }
 
         if (TextUtils.isEmpty(length)) {
-            mLengthView.setError(getString(R.string.error_field_required));
-            focusView = mLengthView;
+            lengthField.setError(getString(R.string.error_field_required));
+            focusView = lengthField;
             cancel = true;
         }
         if (TextUtils.isEmpty(incline)) {
-            mInclineView.setError(getString(R.string.error_field_required));
-            focusView = mInclineView;
+            inclineField.setError(getString(R.string.error_field_required));
+            focusView = inclineField;
             cancel = true;
         }
 
         if (TextUtils.isEmpty(temperature)) {
-            mTemperatureView.setError(getString(R.string.error_field_required));
-            focusView = mTemperatureView;
+            temperatureField.setError(getString(R.string.error_field_required));
+            focusView = temperatureField;
             cancel = true;
         }
 
@@ -184,7 +155,7 @@ public class OptionsActionFragment extends Fragment {
             focusView.requestFocus();
         } else {
             showProgress(true);
-            optionsApi.createOptions(Preferences.getAccessToken(parent),
+            parent.api.createOptions(parent.key,
                     name,
                     type,
                     Double.parseDouble(height),
@@ -196,13 +167,16 @@ public class OptionsActionFragment extends Fragment {
                     massage,
                     parent.user.get("id").getAsInt()).enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    try {
-                        if (response.body() != null) {
-                            parent.getCurrentUser();
-                            Toast.makeText(parent, "Successfully saved options.", Toast.LENGTH_LONG).show();
-                        } else if (response.errorBody() != null) {
-                            JsonObject errorResponse = new JsonParser().parse(response.errorBody().string()).getAsJsonObject();
+                public void onResponse(@NonNull Call<ResponseBody> call,
+                                       @NonNull Response<ResponseBody> response) {
+                    if (response.body() != null) {
+                        parent.getCurrentUser();
+                        Toast.makeText(parent, R.string.response_success_options,
+                                Toast.LENGTH_LONG).show();
+                    } else if (response.errorBody() != null) {
+                        JsonElement res = MainActivity.getJsonResponse(response.errorBody(), parent);
+                        if (res != null) {
+                            JsonObject errorResponse = res.getAsJsonObject();
                             JsonElement non_field_error = errorResponse.get("non_field_errors");
                             JsonElement name_error = errorResponse.get("name");
                             JsonElement height_error = errorResponse.get("height");
@@ -210,37 +184,62 @@ public class OptionsActionFragment extends Fragment {
                             JsonElement width_error = errorResponse.get("width");
                             JsonElement incline_error = errorResponse.get("incline");
                             JsonElement temperature_error = errorResponse.get("temperature");
-                            if (non_field_error != null)
-                                Toast.makeText(parent, non_field_error.getAsString(), Toast.LENGTH_LONG).show();
-                            if (name_error != null)
-                                mNameView.setError(name_error.getAsString());
-                            if (height_error != null)
-                                mHeightView.setError(height_error.getAsString());
-                            if (length_error != null)
-                                mLengthView.setError(length_error.getAsString());
-                            if (width_error != null)
-                                mWidthView.setError(width_error.getAsString());
-                            if (incline_error != null)
-                                mInclineView.setError(incline_error.getAsString());
-                            if (temperature_error != null)
-                                mTemperatureView.setError(temperature_error.getAsString());
 
+                            if (non_field_error != null)
+                                Toast.makeText(parent, non_field_error.getAsString(),
+                                        Toast.LENGTH_LONG).show();
+                            if (name_error != null)
+                                nameField.setError(name_error.getAsString());
+                            if (height_error != null)
+                                heightField.setError(height_error.getAsString());
+                            if (length_error != null)
+                                lengthField.setError(length_error.getAsString());
+                            if (width_error != null)
+                                widthField.setError(width_error.getAsString());
+                            if (incline_error != null)
+                                inclineField.setError(incline_error.getAsString());
+                            if (temperature_error != null)
+                                temperatureField.setError(temperature_error.getAsString());
                         }
-                    } catch (IOException e) {
-                        Log.d("error", e.toString());
-                        Toast.makeText(parent, "An error occurred.", Toast.LENGTH_LONG).show();
-                    } finally {
-                        showProgress(false);
                     }
+                    showProgress(false);
                 }
 
                 @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                     Log.d("server error", t.toString());
-                    Toast.makeText(parent, "A server error occurred.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(parent, R.string.response_fail_server, Toast.LENGTH_LONG).show();
                     showProgress(false);
                 }
             });
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            formBlock.setVisibility(show ? View.GONE : View.VISIBLE);
+            formBlock.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    formBlock.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressBlock.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            formBlock.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 }

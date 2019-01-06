@@ -15,55 +15,42 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import retrofit2.Retrofit;
-
 public class FurnitureFragment extends Fragment {
-    private ListView mFurnitureObjects;
-    private Furniture furnitureApi;
-    private MainActivity parent;
-    private View mProgressView;
-    private View mFurnitureList;
+    private View progressBlock;
+    private View mainBlock;
     private List<JsonObject> furnitureList;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_furniture, container, false);
-        mFurnitureObjects = v.findViewById(R.id.furniture_objects);
-        mProgressView = v.findViewById(R.id.furniture_list_progress);
-        mFurnitureList = v.findViewById(R.id.furniture_list);
-        parent = (MainActivity) getActivity();
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
-        furnitureApi = retrofit.create(Furniture.class);
+        ListView FurnitureBlock = v.findViewById(R.id.furniture_objects);
+        progressBlock = v.findViewById(R.id.furniture_list_progress);
+        mainBlock = v.findViewById(R.id.furniture_list);
 
         furnitureList = new ArrayList<JsonObject>();
-        for (JsonElement furniture : parent.user.get("owned_furniture").getAsJsonArray()) {
-            if (!furnitureList.contains(furniture.getAsJsonObject()))
-                furnitureList.add(furniture.getAsJsonObject());
-        }
-        for (JsonElement furniture : parent.user.get("allowed_furniture").getAsJsonArray()) {
-            if (!furnitureList.contains(furniture.getAsJsonObject()))
-                furnitureList.add(furniture.getAsJsonObject());
-        }
-        for (JsonElement furniture : parent.user.get("current_furniture").getAsJsonArray()) {
-            if (!furnitureList.contains(furniture.getAsJsonObject()))
-                furnitureList.add(furniture.getAsJsonObject());
-        }
+
+        MainActivity parent = (MainActivity) getActivity();
+        if (parent != null)
+            for (String list : API.FURNITURE_LIST)
+                for (JsonElement furniture : parent.user.get(list).getAsJsonArray())
+                    if (!furnitureList.contains(furniture.getAsJsonObject()))
+                        furnitureList.add(furniture.getAsJsonObject());
 
         ListAdapter listAdapter = new ListAdapter();
-        mFurnitureObjects.setAdapter(listAdapter);
+        FurnitureBlock.setAdapter(listAdapter);
         return v;
     }
 
@@ -74,11 +61,9 @@ public class FurnitureFragment extends Fragment {
             map.put(t, val == null ? 1 : val + 1);
         }
         Map.Entry<T, Integer> max = null;
-        for (Map.Entry<T, Integer> e : map.entrySet()) {
-            if (max == null || e.getValue() > max.getValue()) {
+        for (Map.Entry<T, Integer> e : map.entrySet())
+            if (max == null || e.getValue() > max.getValue())
                 max = e;
-            }
-        }
         if (max != null)
             return max.getKey();
         else
@@ -93,12 +78,12 @@ public class FurnitureFragment extends Fragment {
 
         @Override
         public Object getItem(int i) {
-            return null;
+            return furnitureList.get(i);
         }
 
         @Override
         public long getItemId(int i) {
-            return 0;
+            return i;
         }
 
         @Override
@@ -165,7 +150,6 @@ public class FurnitureFragment extends Fragment {
             massage.setText(m);
             return view;
         }
-
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -173,26 +157,26 @@ public class FurnitureFragment extends Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mFurnitureList.setVisibility(show ? View.GONE : View.VISIBLE);
-            mFurnitureList.animate().setDuration(shortAnimTime).alpha(
+            mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
+            mainBlock.animate().setDuration(shortAnimTime).alpha(
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mFurnitureList.setVisibility(show ? View.GONE : View.VISIBLE);
+                    mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
                 }
             });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressBlock.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                    progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
         } else {
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mFurnitureList.setVisibility(show ? View.GONE : View.VISIBLE);
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 }

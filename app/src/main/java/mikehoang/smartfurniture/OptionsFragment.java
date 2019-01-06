@@ -15,39 +15,35 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Retrofit;
 
 public class OptionsFragment extends Fragment {
-    private ListView mOptionsObjects;
-    private Option optionApi;
-    private MainActivity parent;
-    private View mProgressView;
-    private View mOptionsList;
+    private View progressBlock;
+    private View mainBlock;
     private List<JsonObject> optionsList;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_options, container, false);
-        mOptionsObjects = v.findViewById(R.id.options_objects);
-        mProgressView = v.findViewById(R.id.options_list_progress);
-        mOptionsList = v.findViewById(R.id.options_list);
-        parent = (MainActivity) getActivity();
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.0.8:8000/en/api/v1/").build();
-        optionApi = retrofit.create(Option.class);
+        ListView mOptionsObjects = v.findViewById(R.id.options_objects);
+        progressBlock = v.findViewById(R.id.options_list_progress);
+        mainBlock = v.findViewById(R.id.options_list);
 
         optionsList = new ArrayList<JsonObject>();
-        for (JsonElement option : parent.user.get("options_set").getAsJsonArray()) {
-            optionsList.add(option.getAsJsonObject());
-        }
+
+        MainActivity parent = (MainActivity) getActivity();
+        if (parent != null)
+            for (JsonElement option : parent.user.get("options_set").getAsJsonArray())
+                optionsList.add(option.getAsJsonObject());
 
         ListAdapter listAdapter = new ListAdapter();
         mOptionsObjects.setAdapter(listAdapter);
@@ -62,12 +58,12 @@ public class OptionsFragment extends Fragment {
 
         @Override
         public Object getItem(int i) {
-            return null;
+            return optionsList.get(i);
         }
 
         @Override
         public long getItemId(int i) {
-            return 0;
+            return i;
         }
 
         @Override
@@ -106,7 +102,6 @@ public class OptionsFragment extends Fragment {
             massage.setText(m);
             return view;
         }
-
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -114,26 +109,26 @@ public class OptionsFragment extends Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mOptionsList.setVisibility(show ? View.GONE : View.VISIBLE);
-            mOptionsList.animate().setDuration(shortAnimTime).alpha(
+            mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
+            mainBlock.animate().setDuration(shortAnimTime).alpha(
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mOptionsList.setVisibility(show ? View.GONE : View.VISIBLE);
+                    mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
                 }
             });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressBlock.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                    progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
         } else {
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mOptionsList.setVisibility(show ? View.GONE : View.VISIBLE);
+            progressBlock.setVisibility(show ? View.VISIBLE : View.GONE);
+            mainBlock.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 }
