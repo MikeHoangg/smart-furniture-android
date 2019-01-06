@@ -20,7 +20,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,13 +32,14 @@
                 android:paddingBottom="@dimen/nav_header_vertical_spacing">
 
                 <TextView
-                    android:layout_width="70dp"
-                    android:layout_height="match_parent"
-                    android:text="@string/prompt_type" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prompt_type"
+                    android:textSize="18sp" />
 
                 <Spinner
                     android:id="@+id/type"
-                    android:layout_width="300dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
             </android.support.design.widget.TextInputLayout>
@@ -48,7 +48,7 @@
                 android:id="@+id/error"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:visibility="gone" />
 
             <android.support.design.widget.TextInputLayout
@@ -60,13 +60,14 @@
                 android:visibility="gone">
 
                 <TextView
-                    android:layout_width="70dp"
-                    android:layout_height="match_parent"
-                    android:text="@string/prompt_furniture" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prompt_furniture"
+                    android:textSize="18sp" />
 
                 <Spinner
                     android:id="@+id/furniture"
-                    android:layout_width="300dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
             </android.support.design.widget.TextInputLayout>
@@ -80,13 +81,14 @@
                 android:visibility="gone">
 
                 <TextView
-                    android:layout_width="70dp"
-                    android:layout_height="match_parent"
-                    android:text="@string/prompt_options" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prompt_options"
+                    android:textSize="18sp" />
 
                 <Spinner
                     android:id="@+id/options"
-                    android:layout_width="300dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
             </android.support.design.widget.TextInputLayout>
@@ -104,5 +106,7 @@
                 android:visibility="gone" />
 
         </LinearLayout>
+
     </ScrollView>
+
 </RelativeLayout>

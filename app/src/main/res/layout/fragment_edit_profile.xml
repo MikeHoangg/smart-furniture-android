@@ -97,7 +97,7 @@
                     android:inputType="numberDecimal"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="0" />
+                    android:text="@string/prompt_default_double_field" />
 
             </android.support.design.widget.TextInputLayout>
 

@@ -21,6 +21,7 @@
     <string name="prompt_is_public">Is public</string>
     <string name="prompt_furniture">Furniture</string>
     <string name="prompt_options">Options</string>
+    <string name="prompt_default_double_field">0.0</string>
 
     <string name="action_add_options">Add options</string>
     <string name="action_add_furniture">Add furniture</string>
@@ -36,7 +37,9 @@
     <string name="nav_header_desc">Navigation header</string>
 
     <string name="nav_item_furniture">Furniture</string>
+    <string name="nav_item_add_furniture">Add furniture</string>
     <string name="nav_item_options">Furniture options</string>
+    <string name="nav_item_add_options">Add furniture optionss</string>
     <string name="nav_item_edit_profile">Edit profile</string>
     <string name="nav_item_logout">Logout</string>
     <string name="nav_item_apply">Apply furniture settings</string>
@@ -46,5 +49,10 @@
     <string name="error_no_furniture">You have no furniture of this type</string>
     <string name="error_no_options">You have no options of this type</string>
     <string name="error_no_curr_furniture">You have no furniture in use</string>
+    <string name="error_unknown">An error occurred</string>
 
+    <string name="response_success_profile">Successfully saved profile</string>
+    <string name="response_success_furniture">Successfully saved furniture</string>
+    <string name="response_success_options">Successfully saved options</string>
+    <string name="response_fail_server">A server error occurred</string>
 </resources>
