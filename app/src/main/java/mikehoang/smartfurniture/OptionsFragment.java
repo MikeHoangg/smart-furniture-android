@@ -8,24 +8,34 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class OptionsFragment extends Fragment {
     private View progressBlock;
     private View mainBlock;
     private List<JsonObject> optionsList;
+    private MainActivity parent;
 
     @Nullable
     @Override
@@ -40,11 +50,17 @@ public class OptionsFragment extends Fragment {
 
         optionsList = new ArrayList<JsonObject>();
 
-        MainActivity parent = (MainActivity) getActivity();
-        if (parent != null)
-            for (JsonElement option : parent.user.get("options_set").getAsJsonArray())
-                optionsList.add(option.getAsJsonObject());
+        parent = (MainActivity) getActivity();
+        JsonObject user;
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
 
+        for (JsonElement option : user.get("options_set").getAsJsonArray())
+            optionsList.add(option.getAsJsonObject());
         ListAdapter listAdapter = new ListAdapter();
         mOptionsObjects.setAdapter(listAdapter);
         return v;
@@ -67,7 +83,7 @@ public class OptionsFragment extends Fragment {
         }
 
         @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
+        public View getView(final int i, View view, ViewGroup viewGroup) {
             view = getLayoutInflater().inflate(R.layout.options_obj, null);
 
             TextView name = (TextView) view.findViewById(R.id.name);
@@ -100,8 +116,42 @@ public class OptionsFragment extends Fragment {
             temperature.setText(temp);
             rigidity.setText(r);
             massage.setText(m);
+
+            Button deleteButton = (Button) view.findViewById(R.id.delete_button);
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    JsonObject o = optionsList.get(i);
+                    deleteOptions(o.get("id").getAsInt(), i);
+                }
+            });
+
             return view;
         }
+    }
+
+    private void deleteOptions(final int id, final int i) {
+        parent.api.deleteOptions(parent.key, id).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.body() != null) {
+                    parent.getCurrentUser();
+                    optionsList.remove(i);
+                    Toast.makeText(parent, R.string.response_success_delete_options,
+                            Toast.LENGTH_LONG).show();
+                }
+                showProgress(false);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                Log.d("server error", t.toString());
+                Toast.makeText(parent, R.string.response_fail_server,
+                        Toast.LENGTH_LONG).show();
+                showProgress(false);
+            }
+        });
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

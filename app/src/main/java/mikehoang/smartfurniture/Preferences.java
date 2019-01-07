@@ -5,17 +5,17 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 class Preferences {
-    static void setAccessToken(@NonNull Context context, String token) {
+    static void setValue(@NonNull Context context, String key, String value) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MySharedPref",
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("ACCESSTOKEN", token);
+        editor.putString(key, value);
         editor.apply();
     }
 
-    static String getAccessToken(@NonNull Context context) {
+    static String getValue(@NonNull Context context, String key) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("MySharedPref",
                 Context.MODE_PRIVATE);
-        return sharedPreferences.getString("ACCESSTOKEN", null);
+        return sharedPreferences.getString(key, null);
     }
 }

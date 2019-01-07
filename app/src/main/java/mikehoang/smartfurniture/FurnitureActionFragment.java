@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,7 @@ public class FurnitureActionFragment extends Fragment {
     private MainActivity parent;
     private View progressBlock;
     private View formBlock;
+    public JsonObject user;
 
     @Nullable
     @Override
@@ -54,13 +59,25 @@ public class FurnitureActionFragment extends Fragment {
         isPublicField = v.findViewById(R.id.is_public);
         progressBlock = v.findViewById(R.id.furniture_progress);
         formBlock = v.findViewById(R.id.furniture_form);
-        parent = (MainActivity) getActivity();
-
         Button mSaveButton = v.findViewById(R.id.save_button);
 
+        parent = (MainActivity) getActivity();
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
+
         List<String> types = new ArrayList<String>();
-        for (JsonObject obj : parent.furnitureTypes)
-            types.add(obj.get("name").getAsString());
+        if (parent.furnitureTypes != null)
+            for (JsonObject obj : parent.furnitureTypes)
+                types.add(obj.get("name").getAsString());
+        else {
+            String furnitureTypesData = Preferences.getValue(parent, "FURNITURE_TYPES");
+            for (JsonElement el : new JsonParser().parse(furnitureTypesData).getAsJsonArray())
+                types.add(el.getAsJsonObject().get("name").getAsString());
+        }
         ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent,
                 android.R.layout.simple_spinner_item, types);
         typeField.setAdapter(typesAdapter);
@@ -68,6 +85,7 @@ public class FurnitureActionFragment extends Fragment {
         mSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.closeKeyboard(parent);
                 attemptSave();
             }
         });
@@ -108,7 +126,7 @@ public class FurnitureActionFragment extends Fragment {
                     brand,
                     type,
                     is_public,
-                    parent.user.get("id").getAsInt()).enqueue(new Callback<ResponseBody>() {
+                    user.get("id").getAsInt()).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call,
                                        @NonNull Response<ResponseBody> response) {
@@ -116,6 +134,7 @@ public class FurnitureActionFragment extends Fragment {
                         parent.getCurrentUser();
                         Toast.makeText(parent, R.string.response_success_furniture,
                                 Toast.LENGTH_LONG).show();
+                        parent.getUserAndRedirect(new FurnitureFragment(), R.string.nav_item_furniture);
                     } else if (response.errorBody() != null) {
                         JsonElement res = MainActivity.getJsonResponse(response.errorBody(), parent);
                         if (res != null) {

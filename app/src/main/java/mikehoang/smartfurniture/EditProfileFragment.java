@@ -3,6 +3,7 @@ package mikehoang.smartfurniture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,12 +14,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -34,6 +38,7 @@ public class EditProfileFragment extends Fragment {
     private MainActivity parent;
     private View progressBlock;
     private View formBlock;
+    private JsonObject user;
 
     @Nullable
     @Override
@@ -49,29 +54,36 @@ public class EditProfileFragment extends Fragment {
         heightField = v.findViewById(R.id.height);
         progressBlock = v.findViewById(R.id.edit_profile_progress);
         formBlock = v.findViewById(R.id.edit_profile_form);
+        Button saveButton = v.findViewById(R.id.save_button);
+
         parent = (MainActivity) getActivity();
-
-        Button mSaveButton = v.findViewById(R.id.save_button);
-
-        usernameField.setText(parent.user.get("username").getAsString());
-        emailField.setText(parent.user.get("email").getAsString());
-        firstNameField.setText(parent.user.get("first_name").getAsString());
-        lastNAmeField.setText(parent.user.get("last_name").getAsString());
-
-        try {
-            parent.user.get("height").getAsJsonNull();
-        } catch (IllegalStateException e) {
-            heightField.setText(parent.user.get("height").getAsString());
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
         }
 
-        mSaveButton.setOnClickListener(new View.OnClickListener() {
+        usernameField.setText(user.get("username").getAsString());
+        emailField.setText(user.get("email").getAsString());
+        firstNameField.setText(user.get("first_name").getAsString());
+        lastNAmeField.setText(user.get("last_name").getAsString());
+        try {
+            user.get("height").getAsJsonNull();
+        } catch (IllegalStateException e) {
+            heightField.setText(user.get("height").getAsString());
+        }
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.closeKeyboard(parent);
                 attemptSave();
             }
         });
         return v;
     }
+
 
     private void attemptSave() {
         usernameField.setError(null);

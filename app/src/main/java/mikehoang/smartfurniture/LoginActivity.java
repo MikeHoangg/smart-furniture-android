@@ -3,6 +3,7 @@ package mikehoang.smartfurniture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -47,6 +49,7 @@ public class LoginActivity extends AppCompatActivity {
         SignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.closeKeyboard(LoginActivity.this);
                 attemptLogin();
             }
         });
@@ -54,7 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         Retrofit retrofit = new Retrofit.Builder().baseUrl(API.BASE_URL).build();
         api = retrofit.create(API.class);
     }
-
 
     private void attemptLogin() {
         usernameField.setError(null);
@@ -89,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (res != null) {
                             JsonObject successResponse = res.getAsJsonObject();
                             String key = successResponse.get("key").getAsString();
-                            Preferences.setAccessToken(LoginActivity.this,
+                            Preferences.setValue(LoginActivity.this, "AUTH_TOKEN",
                                     "Token " + key);
                             startActivity(new Intent(LoginActivity.this,
                                     MainActivity.class));

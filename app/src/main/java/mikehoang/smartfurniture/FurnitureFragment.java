@@ -3,31 +3,42 @@ package mikehoang.smartfurniture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class FurnitureFragment extends Fragment {
     private View progressBlock;
     private View mainBlock;
     private List<JsonObject> furnitureList;
+    private MainActivity parent;
 
     @Nullable
     @Override
@@ -42,12 +53,19 @@ public class FurnitureFragment extends Fragment {
 
         furnitureList = new ArrayList<JsonObject>();
 
-        MainActivity parent = (MainActivity) getActivity();
-        if (parent != null)
-            for (String list : API.FURNITURE_LIST)
-                for (JsonElement furniture : parent.user.get(list).getAsJsonArray())
-                    if (!furnitureList.contains(furniture.getAsJsonObject()))
-                        furnitureList.add(furniture.getAsJsonObject());
+        parent = (MainActivity) getActivity();
+        JsonObject user;
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
+
+        for (String list : API.FURNITURE_LIST)
+            for (JsonElement furniture : user.get(list).getAsJsonArray())
+                if (!furnitureList.contains(furniture.getAsJsonObject()))
+                    furnitureList.add(furniture.getAsJsonObject());
 
         ListAdapter listAdapter = new ListAdapter();
         FurnitureBlock.setAdapter(listAdapter);
@@ -87,7 +105,7 @@ public class FurnitureFragment extends Fragment {
         }
 
         @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
+        public View getView(final int i, View view, ViewGroup viewGroup) {
             view = getLayoutInflater().inflate(R.layout.furniture_obj, null);
 
             TextView typeCode = (TextView) view.findViewById(R.id.type_code);
@@ -148,8 +166,42 @@ public class FurnitureFragment extends Fragment {
             temperature.setText(t);
             rigidity.setText(r);
             massage.setText(m);
+
+            Button deleteButton = (Button) view.findViewById(R.id.delete_button);
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    JsonObject f = furnitureList.get(i);
+                    deleteFurniture(f.get("id").getAsInt(), i);
+                }
+            });
+
             return view;
         }
+    }
+
+    private void deleteFurniture(final int id, final int i) {
+        parent.api.deleteFurniture(parent.key, id).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.body() != null) {
+                    parent.getCurrentUser();
+                    furnitureList.remove(i);
+                    Toast.makeText(parent, R.string.response_success_delete_furniture,
+                            Toast.LENGTH_LONG).show();
+                }
+                showProgress(false);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                Log.d("server error", t.toString());
+                Toast.makeText(parent, R.string.response_fail_server,
+                        Toast.LENGTH_LONG).show();
+                showProgress(false);
+            }
+        });
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

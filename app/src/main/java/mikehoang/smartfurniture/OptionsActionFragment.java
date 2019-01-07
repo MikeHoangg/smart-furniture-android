@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,8 +22,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +48,7 @@ public class OptionsActionFragment extends Fragment {
     private View formBlock;
     private View progressBlock;
     private MainActivity parent;
+    private JsonObject user;
 
     @Nullable
     @Override
@@ -62,38 +68,70 @@ public class OptionsActionFragment extends Fragment {
         massageField = v.findViewById(R.id.massage);
         formBlock = v.findViewById(R.id.options_form);
         progressBlock = v.findViewById(R.id.options_progress);
-        parent = (MainActivity) getActivity();
-
         Button saveButton = v.findViewById(R.id.save_button);
 
-        List<String> massageTypes = new ArrayList<String>();
-        for (JsonObject obj : parent.massageTypes)
-            massageTypes.add(obj.get("name").getAsString());
-        ArrayAdapter<String> massageAdapter = new ArrayAdapter<String>(parent,
-                android.R.layout.simple_spinner_item, massageTypes);
-        massageField.setAdapter(massageAdapter);
+        parent = (MainActivity) getActivity();
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
 
-        List<String> rigidityTypes = new ArrayList<String>();
-        for (JsonObject obj : parent.rigidityTypes)
-            rigidityTypes.add(obj.get("name").getAsString());
-        ArrayAdapter<String> rigidityAdapter = new ArrayAdapter<String>(parent,
-                android.R.layout.simple_spinner_item, rigidityTypes);
-        rigidityField.setAdapter(rigidityAdapter);
-
-        List<String> types = new ArrayList<String>();
-        for (JsonObject obj : parent.furnitureTypes)
-            types.add(obj.get("name").getAsString());
-        ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent,
-                android.R.layout.simple_spinner_item, types);
-        typeField.setAdapter(typesAdapter);
+        getSpinners();
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.closeKeyboard(parent);
                 attemptSave();
             }
         });
         return v;
+    }
+
+    private void getSpinners() {
+        List<String> types = new ArrayList<String>();
+        if (parent.furnitureTypes != null)
+            for (JsonObject obj : parent.furnitureTypes)
+                types.add(obj.get("name").getAsString());
+        else {
+            String typesData = Preferences.getValue(parent, "FURNITURE_TYPES");
+            JsonArray arr = new JsonParser().parse(typesData).getAsJsonArray();
+            for (JsonElement elj : arr)
+                types.add(elj.getAsJsonObject().get("name").getAsString());
+        }
+        ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, types);
+        typeField.setAdapter(typesAdapter);
+
+        List<String> massageList = new ArrayList<String>();
+        if (parent.massageTypes != null)
+            for (JsonObject obj : parent.massageTypes)
+                massageList.add(obj.get("name").getAsString());
+        else {
+            String massageData = Preferences.getValue(parent, "MASSAGE_TYPES");
+            JsonArray arr = new JsonParser().parse(massageData).getAsJsonArray();
+            for (JsonElement elj : arr)
+                massageList.add(elj.getAsJsonObject().get("name").getAsString());
+        }
+        ArrayAdapter<String> massageAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, massageList);
+        massageField.setAdapter(massageAdapter);
+
+        List<String> rigidityList = new ArrayList<String>();
+        if (parent.rigidityTypes != null)
+            for (JsonObject obj : parent.rigidityTypes)
+                rigidityList.add(obj.get("name").getAsString());
+        else {
+            String rigidityData = Preferences.getValue(parent, "RIGIDITY_TYPES");
+            JsonArray arr = new JsonParser().parse(rigidityData).getAsJsonArray();
+            for (JsonElement elj : arr)
+                rigidityList.add(elj.getAsJsonObject().get("name").getAsString());
+        }
+        ArrayAdapter<String> rigidityAdapter = new ArrayAdapter<String>(parent,
+                android.R.layout.simple_spinner_item, rigidityList);
+        rigidityField.setAdapter(rigidityAdapter);
     }
 
     private void attemptSave() {
@@ -151,9 +189,9 @@ public class OptionsActionFragment extends Fragment {
             cancel = true;
         }
 
-        if (cancel) {
+        if (cancel)
             focusView.requestFocus();
-        } else {
+        else {
             showProgress(true);
             parent.api.createOptions(parent.key,
                     name,
@@ -165,7 +203,7 @@ public class OptionsActionFragment extends Fragment {
                     Double.parseDouble(temperature),
                     rigidity,
                     massage,
-                    parent.user.get("id").getAsInt()).enqueue(new Callback<ResponseBody>() {
+                    user.get("id").getAsInt()).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NonNull Call<ResponseBody> call,
                                        @NonNull Response<ResponseBody> response) {
@@ -173,6 +211,8 @@ public class OptionsActionFragment extends Fragment {
                         parent.getCurrentUser();
                         Toast.makeText(parent, R.string.response_success_options,
                                 Toast.LENGTH_LONG).show();
+                        parent.getUserAndRedirect(new OptionsFragment(), R.string.nav_item_options);
+
                     } else if (response.errorBody() != null) {
                         JsonElement res = MainActivity.getJsonResponse(response.errorBody(), parent);
                         if (res != null) {

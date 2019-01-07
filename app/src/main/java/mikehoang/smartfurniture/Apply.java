@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class Apply extends Fragment {
     private List<String> types;
     private List<JsonObject> optionsObjList;
     private List<JsonObject> furnitureObjList;
+    private JsonObject user;
 
     @Nullable
     @Override
@@ -59,20 +61,32 @@ public class Apply extends Fragment {
         errorBlock = v.findViewById(R.id.error);
         progressBlock = v.findViewById(R.id.apply_progress);
         formBlock = v.findViewById(R.id.apply_form);
+        Spinner typeField = v.findViewById(R.id.type);
+
         parent = (MainActivity) getActivity();
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
 
         types = new ArrayList<String>();
         furnitureObjList = new ArrayList<JsonObject>();
         optionsObjList = new ArrayList<JsonObject>();
 
-        Spinner typeField = v.findViewById(R.id.type);
 
-        for (JsonObject obj : parent.furnitureTypes)
-            types.add(obj.get("name").getAsString());
+        if (parent.furnitureTypes != null)
+            for (JsonObject obj : parent.furnitureTypes)
+                types.add(obj.get("name").getAsString());
+        else {
+            String furnitureTypesData = Preferences.getValue(parent, "FURNITURE_TYPES");
+            for (JsonElement el : new JsonParser().parse(furnitureTypesData).getAsJsonArray())
+                types.add(el.getAsJsonObject().get("name").getAsString());
+        }
         ArrayAdapter<String> typesAdapter = new ArrayAdapter<String>(parent,
                 android.R.layout.simple_spinner_item, types);
         typeField.setAdapter(typesAdapter);
-
         getSpinners(types.get(0));
 
         applyButton.setOnClickListener(new View.OnClickListener() {
@@ -128,23 +142,24 @@ public class Apply extends Fragment {
 
     private List<String> getFurnitureList(String type) {
         List<String> furnitureList = new ArrayList<String>();
-        for (String list : API.FURNITURE_LIST)
-            for (JsonElement furniture : parent.user.get(list).getAsJsonArray()) {
-                JsonObject f = furniture.getAsJsonObject();
-                if (f.get("type").getAsString().equals(type)) {
-                    String res = f.get("type").getAsString() + " - " + f.get("code").getAsString();
-                    if (!furnitureList.contains(res)) {
-                        furnitureList.add(res);
-                        furnitureObjList.add(f);
+        if (user != null)
+            for (String list : API.FURNITURE_LIST)
+                for (JsonElement furniture : user.get(list).getAsJsonArray()) {
+                    JsonObject f = furniture.getAsJsonObject();
+                    if (f.get("type").getAsString().equals(type)) {
+                        String res = f.get("type").getAsString() + " - " + f.get("code").getAsString();
+                        if (!furnitureList.contains(res)) {
+                            furnitureList.add(res);
+                            furnitureObjList.add(f);
+                        }
                     }
                 }
-            }
         return furnitureList;
     }
 
     private List<String> getOptionsList(String type) {
         List<String> optionsList = new ArrayList<String>();
-        for (JsonElement option : parent.user.get("options_set").getAsJsonArray()) {
+        for (JsonElement option : user.get("options_set").getAsJsonArray()) {
             JsonObject f = option.getAsJsonObject();
             if (f.get("type").getAsString().equals(type)) {
                 String res = f.get("name").getAsString();

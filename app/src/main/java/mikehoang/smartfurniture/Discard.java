@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class Discard extends Fragment {
     private View progressBlock;
     private View formBlock;
     private List<JsonObject> furnitureList;
+    private JsonObject user;
 
     @Nullable
     @Override
@@ -46,15 +48,21 @@ public class Discard extends Fragment {
         furnitureField = v.findViewById(R.id.furniture);
         progressBlock = v.findViewById(R.id.discard_progress);
         formBlock = v.findViewById(R.id.discard_form);
-        parent = (MainActivity) getActivity();
-
-        TextView mErrorView = v.findViewById(R.id.error);
-        Button mDiscardButton = v.findViewById(R.id.discard_button);
+        TextView errorBlock = v.findViewById(R.id.error);
+        Button discardButton = v.findViewById(R.id.discard_button);
         View furnitureBlock = v.findViewById(R.id.furniture_block);
+
+        parent = (MainActivity) getActivity();
+        if (parent.user != null)
+            user = parent.user;
+        else {
+            String userData = Preferences.getValue(parent, "USER");
+            user = new JsonParser().parse(userData).getAsJsonObject();
+        }
 
         furnitureList = new ArrayList<JsonObject>();
         List<String> furniture = new ArrayList<String>();
-        for (JsonElement el : parent.user.get("current_furniture").getAsJsonArray()) {
+        for (JsonElement el : user.get("current_furniture").getAsJsonArray()) {
             JsonObject obj = el.getAsJsonObject();
             String s = obj.get("type").getAsString() + " - " + obj.get("code").getAsString();
             if (!furniture.contains(s)) {
@@ -62,16 +70,15 @@ public class Discard extends Fragment {
                 furnitureList.add(obj);
             }
         }
-
         ArrayAdapter<String> furnitureAdapter = new ArrayAdapter<String>(parent,
                 android.R.layout.simple_spinner_item, furniture);
         furnitureField.setAdapter(furnitureAdapter);
 
         furnitureBlock.setVisibility(furniture.size() > 0 ? View.VISIBLE : View.GONE);
-        mDiscardButton.setVisibility(furniture.size() > 0 ? View.VISIBLE : View.GONE);
-        mErrorView.setVisibility(furniture.size() > 0 ? View.GONE : View.VISIBLE);
+        discardButton.setVisibility(furniture.size() > 0 ? View.VISIBLE : View.GONE);
+        errorBlock.setVisibility(furniture.size() > 0 ? View.GONE : View.VISIBLE);
 
-        mDiscardButton.setOnClickListener(new View.OnClickListener() {
+        discardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptDiscard();
@@ -95,7 +102,7 @@ public class Discard extends Fragment {
 
         showProgress(true);
         parent.api.discardOptions(parent.key,
-                Integer.parseInt(parent.user.get("id").getAsString()),
+                Integer.parseInt(user.get("id").getAsString()),
                 furnitureId).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,

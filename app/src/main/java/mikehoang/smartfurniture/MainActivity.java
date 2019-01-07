@@ -1,8 +1,10 @@
 package mikehoang.smartfurniture;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
@@ -12,6 +14,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,25 +62,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        key = Preferences.getAccessToken(MainActivity.this);
+        key = Preferences.getValue(MainActivity.this, "AUTH_TOKEN");
 
         Retrofit retrofit = new Retrofit.Builder().baseUrl(API.BASE_URL).build();
         api = retrofit.create(API.class);
 
-        getCurrentUser();
         getFurnitureTypes();
         getRigidityMassageTypes();
 
-        if (savedInstanceState == null && user != null) {
-            setFirstPage(navigationView);
-        }
-    }
+        if (savedInstanceState == null)
+            getUserAndRedirect(new FurnitureFragment(), R.string.nav_item_furniture);
+        else
+            getCurrentUser();
 
-    private void setFirstPage(NavigationView navigationView) {
-        MainActivity.this.setTitle(R.string.nav_item_furniture);
-        getSupportFragmentManager().beginTransaction().
-                replace(R.id.fragment, new FurnitureFragment()).commit();
-        navigationView.setCheckedItem(R.id.nav_furniture);
     }
 
     public static JsonElement getJsonResponse(final ResponseBody obj, final AppCompatActivity activity) {
@@ -90,6 +88,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public static void closeKeyboard(AppCompatActivity act) {
+        View view = act.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) act.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     public void getCurrentUser() {
         api.getCurrentUser(key).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -99,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     JsonElement res = getJsonResponse(response.body(), MainActivity.this);
                     if (res != null) {
                         user = res.getAsJsonObject();
+                        Preferences.setValue(MainActivity.this, "USER",
+                                user.toString());
                         TextView username = (TextView) findViewById(R.id.text_username);
                         username.setText(user.get("username").getAsString());
 
@@ -125,6 +133,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    public void getUserAndRedirect(final Fragment frag, final int title) {
+        api.getCurrentUser(key).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.body() != null) {
+                    JsonElement res = getJsonResponse(response.body(), MainActivity.this);
+                    if (res != null) {
+                        user = res.getAsJsonObject();
+                        Preferences.setValue(MainActivity.this, "USER",
+                                user.toString());
+                        TextView username = (TextView) findViewById(R.id.text_username);
+                        username.setText(user.get("username").getAsString());
+
+                        TextView email = (TextView) findViewById(R.id.text_email);
+                        email.setText(user.get("email").getAsString());
+
+                        try {
+                            user.get("image").getAsJsonNull();
+                        } catch (IllegalStateException e) {
+                            Log.d("error", e.toString());
+                            ImageView image = (ImageView) findViewById(R.id.image_image);
+                            Picasso.get().load(user.get("image").getAsString()).into(image);
+                        }
+                        MainActivity.this.setTitle(title);
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        fragmentManager.beginTransaction().
+                                replace(R.id.fragment, frag).commit();
+                        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                        drawer.closeDrawer(GravityCompat.START);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                Log.d("server error", t.toString());
+                Toast.makeText(MainActivity.this, R.string.response_fail_server,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void getRigidityMassageTypes() {
         api.getRigidityMassageTypes().enqueue(new Callback<ResponseBody>() {
             @Override
@@ -136,12 +187,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     JsonElement res = getJsonResponse(response.body(), MainActivity.this);
                     if (res != null) {
                         JsonArray list = res.getAsJsonArray();
+
                         for (JsonElement el : list) {
                             JsonObject obj = el.getAsJsonObject();
                             if (obj.get("type").getAsString().equals("massage"))
                                 massageTypes.add(obj);
                             else
                                 rigidityTypes.add(obj);
+                            Preferences.setValue(MainActivity.this,
+                                    "MASSAGE_TYPES", massageTypes.toString());
+                            Preferences.setValue(MainActivity.this,
+                                    "RIGIDITY_TYPES", rigidityTypes.toString());
                         }
                     }
                 }
@@ -164,6 +220,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     JsonElement res = getJsonResponse(response.body(), MainActivity.this);
                     if (res != null) {
                         JsonArray list = res.getAsJsonArray();
+                        Preferences.setValue(MainActivity.this,
+                                "FURNITURE_TYPES", list.toString());
                         for (JsonElement el : list) {
                             JsonObject obj = el.getAsJsonObject();
                             furnitureTypes.add(obj);
@@ -230,15 +288,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     fragmentManager.beginTransaction().
                             replace(R.id.fragment, new EditProfileFragment()).commit();
                     break;
-                case R.id.nav_logout:
-                    Preferences.setAccessToken(MainActivity.this, null);
-                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                    MainActivity.this.finish();
-                    break;
                 default:
                     break;
             }
         }
+        if (id == R.id.nav_logout) {
+            Preferences.setValue(MainActivity.this, "AUTH_TOKEN", null);
+            Preferences.setValue(MainActivity.this, "USER", null);
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            MainActivity.this.finish();
+        }
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;

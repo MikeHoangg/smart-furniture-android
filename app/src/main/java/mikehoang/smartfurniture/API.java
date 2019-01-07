@@ -5,6 +5,7 @@ import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -14,7 +15,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface API {
-    String BASE_URL = "http://172.20.10.14:8000/en/api/v1/";
+    String BASE_URL = "http://192.168.0.8:8000/en/api/v1/";
     List<String> FURNITURE_LIST = Arrays.asList("owned_furniture",
             "allowed_furniture",
             "current_furniture");
@@ -24,7 +25,6 @@ public interface API {
     Call<ResponseBody> login(@Field("username") String username,
                              @Field("password") String password);
 
-    @FormUrlEncoded
     @POST("logout/")
     Call<ResponseBody> logout();
 
@@ -69,6 +69,10 @@ public interface API {
                                      @Field("type") String type,
                                      @Field("is_public") Boolean isPublic);
 
+    @DELETE("api/v1/furniture/{id}")
+    Call<ResponseBody> deleteFurniture(@Header("Authorization") String token,
+                                       @Path("id") int id);
+
     @FormUrlEncoded
     @POST("options/")
     Call<ResponseBody> createOptions(@Header("Authorization") String token,
@@ -95,6 +99,10 @@ public interface API {
                                    @Field("brand") String brand,
                                    @Field("type") String type,
                                    @Field("is_public") Boolean isPublic);
+
+    @DELETE("options/{id}/")
+    Call<ResponseBody> deleteOptions(@Header("Authorization") String token,
+                                     @Path("id") int id);
 
     @GET("furniture-types/")
     Call<ResponseBody> getFurnitureTypes();
