@@ -100,4 +100,18 @@
         android:layout_marginTop="36dp"
         android:textSize="18sp" />
 
+    <Button
+        android:id="@+id/delete_button"
+        style="?android:textAppearanceSmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:layout_alignTop="@+id/width"
+        android:layout_alignStart="@+id/width"
+        android:layout_alignLeft="@+id/width"
+        android:background="@color/colorDanger"
+        android:text="@string/action_delete"
+        android:textColor="@color/colorTextWhite"
+        android:textStyle="bold" />
+
 </RelativeLayout>

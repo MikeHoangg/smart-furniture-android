@@ -27,6 +27,7 @@
     <string name="action_add_furniture">Add furniture</string>
     <string name="action_sign_in">Log in</string>
     <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_apply">Apply</string>
     <string name="action_discard">Discard</string>
@@ -54,5 +55,7 @@
     <string name="response_success_profile">Successfully saved profile</string>
     <string name="response_success_furniture">Successfully saved furniture</string>
     <string name="response_success_options">Successfully saved options</string>
+    <string name="response_success_delete_options">Successfully deleted options</string>
+    <string name="response_success_delete_furniture">Successfully deleted furniture</string>
     <string name="response_fail_server">A server error occurred</string>
 </resources>
