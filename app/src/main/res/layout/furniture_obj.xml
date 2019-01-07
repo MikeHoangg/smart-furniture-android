@@ -112,6 +112,7 @@
         android:background="@color/colorDanger"
         android:text="@string/action_delete"
         android:textColor="@color/colorTextWhite"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="gone"/>
 
 </RelativeLayout>

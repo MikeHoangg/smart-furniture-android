@@ -3,7 +3,6 @@ package mikehoang.smartfurniture;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -37,8 +36,10 @@ import retrofit2.Response;
 public class FurnitureFragment extends Fragment {
     private View progressBlock;
     private View mainBlock;
+    private ListView furnitureBlock;
     private List<JsonObject> furnitureList;
     private MainActivity parent;
+    private JsonObject user;
 
     @Nullable
     @Override
@@ -47,14 +48,13 @@ public class FurnitureFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_furniture, container, false);
 
-        ListView FurnitureBlock = v.findViewById(R.id.furniture_objects);
+        furnitureBlock = v.findViewById(R.id.furniture_objects);
         progressBlock = v.findViewById(R.id.furniture_list_progress);
         mainBlock = v.findViewById(R.id.furniture_list);
 
         furnitureList = new ArrayList<JsonObject>();
 
         parent = (MainActivity) getActivity();
-        JsonObject user;
         if (parent.user != null)
             user = parent.user;
         else {
@@ -67,8 +67,7 @@ public class FurnitureFragment extends Fragment {
                 if (!furnitureList.contains(furniture.getAsJsonObject()))
                     furnitureList.add(furniture.getAsJsonObject());
 
-        ListAdapter listAdapter = new ListAdapter();
-        FurnitureBlock.setAdapter(listAdapter);
+        furnitureBlock.setAdapter(new ListAdapter());
         return v;
     }
 
@@ -167,15 +166,18 @@ public class FurnitureFragment extends Fragment {
             rigidity.setText(r);
             massage.setText(m);
 
-            Button deleteButton = (Button) view.findViewById(R.id.delete_button);
-            deleteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    JsonObject f = furnitureList.get(i);
-                    deleteFurniture(f.get("id").getAsInt(), i);
-                }
-            });
-
+            if (user.get("id").getAsInt() == furniture.get("owner").getAsJsonObject().get("id").getAsInt()) {
+                Button deleteButton = (Button) view.findViewById(R.id.delete_button);
+                deleteButton.setVisibility(View.VISIBLE);
+                deleteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showProgress(true);
+                        JsonObject f = furnitureList.get(i);
+                        deleteFurniture(f.get("id").getAsInt(), i);
+                    }
+                });
+            }
             return view;
         }
     }
@@ -185,12 +187,11 @@ public class FurnitureFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
-                if (response.body() != null) {
-                    parent.getCurrentUser();
-                    furnitureList.remove(i);
-                    Toast.makeText(parent, R.string.response_success_delete_furniture,
-                            Toast.LENGTH_LONG).show();
-                }
+                parent.getCurrentUser();
+                furnitureList.remove(i);
+                furnitureBlock.setAdapter(new ListAdapter());
+                Toast.makeText(parent, R.string.response_success_delete_furniture,
+                        Toast.LENGTH_LONG).show();
                 showProgress(false);
             }
 

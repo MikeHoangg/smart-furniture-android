@@ -208,7 +208,6 @@ public class OptionsActionFragment extends Fragment {
                 public void onResponse(@NonNull Call<ResponseBody> call,
                                        @NonNull Response<ResponseBody> response) {
                     if (response.body() != null) {
-                        parent.getCurrentUser();
                         Toast.makeText(parent, R.string.response_success_options,
                                 Toast.LENGTH_LONG).show();
                         parent.getUserAndRedirect(new OptionsFragment(), R.string.nav_item_options);

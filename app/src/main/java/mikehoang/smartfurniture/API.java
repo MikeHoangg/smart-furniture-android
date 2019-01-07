@@ -15,7 +15,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface API {
-    String BASE_URL = "http://192.168.0.8:8000/en/api/v1/";
+    String BASE_URL = "http://172.20.10.3:8000/en/api/v1/";
     List<String> FURNITURE_LIST = Arrays.asList("owned_furniture",
             "allowed_furniture",
             "current_furniture");
@@ -61,7 +61,7 @@ public interface API {
                                     @Path("id") int id);
 
     @FormUrlEncoded
-    @PUT("api/v1/furniture/{id}")
+    @PUT("furniture/{id}/")
     Call<ResponseBody> editFurniture(@Header("Authorization") String token,
                                      @Path("id") int id,
                                      @Field("code") String code,
@@ -69,7 +69,7 @@ public interface API {
                                      @Field("type") String type,
                                      @Field("is_public") Boolean isPublic);
 
-    @DELETE("api/v1/furniture/{id}")
+    @DELETE("furniture/{id}/")
     Call<ResponseBody> deleteFurniture(@Header("Authorization") String token,
                                        @Path("id") int id);
 

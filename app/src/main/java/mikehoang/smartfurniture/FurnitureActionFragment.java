@@ -131,7 +131,6 @@ public class FurnitureActionFragment extends Fragment {
                 public void onResponse(@NonNull Call<ResponseBody> call,
                                        @NonNull Response<ResponseBody> response) {
                     if (response.body() != null) {
-                        parent.getCurrentUser();
                         Toast.makeText(parent, R.string.response_success_furniture,
                                 Toast.LENGTH_LONG).show();
                         parent.getUserAndRedirect(new FurnitureFragment(), R.string.nav_item_furniture);

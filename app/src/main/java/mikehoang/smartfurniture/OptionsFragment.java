@@ -34,6 +34,7 @@ import retrofit2.Response;
 public class OptionsFragment extends Fragment {
     private View progressBlock;
     private View mainBlock;
+    private ListView optionsBlock;
     private List<JsonObject> optionsList;
     private MainActivity parent;
 
@@ -44,7 +45,7 @@ public class OptionsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_options, container, false);
 
-        ListView mOptionsObjects = v.findViewById(R.id.options_objects);
+        optionsBlock = v.findViewById(R.id.options_objects);
         progressBlock = v.findViewById(R.id.options_list_progress);
         mainBlock = v.findViewById(R.id.options_list);
 
@@ -61,8 +62,8 @@ public class OptionsFragment extends Fragment {
 
         for (JsonElement option : user.get("options_set").getAsJsonArray())
             optionsList.add(option.getAsJsonObject());
-        ListAdapter listAdapter = new ListAdapter();
-        mOptionsObjects.setAdapter(listAdapter);
+
+        optionsBlock.setAdapter(new ListAdapter());
         return v;
     }
 
@@ -121,6 +122,7 @@ public class OptionsFragment extends Fragment {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    showProgress(true);
                     JsonObject o = optionsList.get(i);
                     deleteOptions(o.get("id").getAsInt(), i);
                 }
@@ -135,12 +137,11 @@ public class OptionsFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
-                if (response.body() != null) {
-                    parent.getCurrentUser();
-                    optionsList.remove(i);
-                    Toast.makeText(parent, R.string.response_success_delete_options,
-                            Toast.LENGTH_LONG).show();
-                }
+                parent.getCurrentUser();
+                optionsList.remove(i);
+                optionsBlock.setAdapter(new ListAdapter());
+                Toast.makeText(parent, R.string.response_success_delete_options,
+                        Toast.LENGTH_LONG).show();
                 showProgress(false);
             }
 
