@@ -28,6 +28,7 @@
     <string name="action_sign_in">Log in</string>
     <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_apply">Apply</string>
     <string name="action_discard">Discard</string>
@@ -45,6 +46,8 @@
     <string name="nav_item_logout">Logout</string>
     <string name="nav_item_apply">Apply furniture settings</string>
     <string name="nav_item_discard">Discard furniture settings</string>
+    <string name="nav_item_edit_furniture">Edit furniture</string>
+    <string name="nav_item_edit_options">Edit options</string>
 
     <string name="error_field_required">This field is required</string>
     <string name="error_no_furniture">You have no furniture of this type</string>
