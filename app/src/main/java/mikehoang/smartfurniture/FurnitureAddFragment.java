@@ -35,7 +35,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class FurnitureActionFragment extends Fragment {
+public class FurnitureAddFragment extends Fragment {
     private EditText codeField;
     private EditText brandField;
     private Spinner typeField;

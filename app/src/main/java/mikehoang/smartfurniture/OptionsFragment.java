@@ -97,16 +97,16 @@ public class OptionsFragment extends Fragment {
             TextView rigidity = (TextView) view.findViewById(R.id.rigidity);
             TextView massage = (TextView) view.findViewById(R.id.massage);
 
-            JsonObject option = optionsList.get(i);
-            String n = option.get("name").getAsString();
-            String t = "Type: " + option.get("type").getAsString();
-            String h = "Height: " + option.get("height").getAsString();
-            String l = "Length: " + option.get("length").getAsString();
-            String w = "Width: " + option.get("width").getAsString();
-            String inc = "Incline: " + option.get("incline").getAsString();
-            String temp = "Temperature: " + option.get("temperature").getAsString();
-            String r = "Rigidity: " + option.get("rigidity").getAsString();
-            String m = "Massage: " + option.get("massage").getAsString();
+            JsonObject o = optionsList.get(i);
+            String n = o.get("name").getAsString();
+            String t = "Type: " + o.get("type").getAsString();
+            String h = "Height: " + o.get("height").getAsString();
+            String l = "Length: " + o.get("length").getAsString();
+            String w = "Width: " + o.get("width").getAsString();
+            String inc = "Incline: " + o.get("incline").getAsString();
+            String temp = "Temperature: " + o.get("temperature").getAsString();
+            String r = "Rigidity: " + o.get("rigidity").getAsString();
+            String m = "Massage: " + o.get("massage").getAsString();
 
             name.setText(n);
             type.setText(t);
@@ -118,6 +118,9 @@ public class OptionsFragment extends Fragment {
             rigidity.setText(r);
             massage.setText(m);
 
+            View actionsBlock = (View)view.findViewById(R.id.actions_block);
+            actionsBlock.setVisibility(View.VISIBLE);
+
             Button deleteButton = (Button) view.findViewById(R.id.delete_button);
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -128,6 +131,15 @@ public class OptionsFragment extends Fragment {
                 }
             });
 
+            Button editButton = (Button) view.findViewById(R.id.edit_button);
+            editButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    JsonObject o = optionsList.get(i);
+                    Preferences.setValue(parent,"EDIT_OPTIONS", o.toString());
+                    parent.editRedirect("options");
+                }
+            });
             return view;
         }
     }

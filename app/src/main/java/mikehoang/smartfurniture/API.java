@@ -67,7 +67,8 @@ public interface API {
                                      @Field("code") String code,
                                      @Field("brand") String brand,
                                      @Field("type") String type,
-                                     @Field("is_public") Boolean isPublic);
+                                     @Field("is_public") Boolean isPublic,
+                                     @Field("owner") int owner);
 
     @DELETE("furniture/{id}/")
     Call<ResponseBody> deleteFurniture(@Header("Authorization") String token,
@@ -95,10 +96,16 @@ public interface API {
     @PUT("options/{id}/")
     Call<ResponseBody> editOptions(@Header("Authorization") String token,
                                    @Path("id") int id,
-                                   @Field("code") String code,
-                                   @Field("brand") String brand,
+                                   @Field("name") String name,
                                    @Field("type") String type,
-                                   @Field("is_public") Boolean isPublic);
+                                   @Field("height") double height,
+                                   @Field("length") double length,
+                                   @Field("width") double width,
+                                   @Field("incline") double incline,
+                                   @Field("temperature") double temperature,
+                                   @Field("rigidity") String rigidity,
+                                   @Field("massage") String massage,
+                                   @Field("creator") int creator);
 
     @DELETE("options/{id}/")
     Call<ResponseBody> deleteOptions(@Header("Authorization") String token,

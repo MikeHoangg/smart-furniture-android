@@ -117,10 +117,10 @@ public class FurnitureFragment extends Fragment {
             TextView massage = (TextView) view.findViewById(R.id.massage);
             TextView owner = (TextView) view.findViewById(R.id.owner);
 
-            JsonObject furniture = furnitureList.get(i);
-            String tc = furniture.get("type").getAsString() + " - " + furniture.get("code").getAsString();
-            String o = "Owner: " + furniture.get("owner").getAsJsonObject().get("username").getAsString();
-            JsonArray options = furniture.get("current_options").getAsJsonArray();
+            JsonObject f = furnitureList.get(i);
+            String tc = f.get("type").getAsString() + " - " + f.get("code").getAsString();
+            String o = "Owner: " + f.get("owner").getAsJsonObject().get("username").getAsString();
+            JsonArray options = f.get("current_options").getAsJsonArray();
 
             List<String> massageCount = new ArrayList<String>();
             List<String> rigidityCount = new ArrayList<String>();
@@ -166,15 +166,27 @@ public class FurnitureFragment extends Fragment {
             rigidity.setText(r);
             massage.setText(m);
 
-            if (user.get("id").getAsInt() == furniture.get("owner").getAsJsonObject().get("id").getAsInt()) {
+            if (user.get("id").getAsInt() == f.get("owner").getAsJsonObject().get("id").getAsInt()) {
+                View actionsBlock = (View)view.findViewById(R.id.actions_block);
+                actionsBlock.setVisibility(View.VISIBLE);
+
                 Button deleteButton = (Button) view.findViewById(R.id.delete_button);
-                deleteButton.setVisibility(View.VISIBLE);
                 deleteButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         showProgress(true);
                         JsonObject f = furnitureList.get(i);
                         deleteFurniture(f.get("id").getAsInt(), i);
+                    }
+                });
+
+                Button editButton = (Button) view.findViewById(R.id.edit_button);
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        JsonObject f = furnitureList.get(i);
+                        Preferences.setValue(parent,"EDIT_FURNITURE", f.toString());
+                        parent.editRedirect("furniture");
                     }
                 });
             }

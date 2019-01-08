@@ -35,7 +35,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class OptionsActionFragment extends Fragment {
+public class OptionsAddFragment extends Fragment {
     private EditText nameField;
     private Spinner typeField;
     private EditText heightField;

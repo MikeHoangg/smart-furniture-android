@@ -245,7 +245,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else
             super.onBackPressed();
     }
-
+    public void editRedirect(final String s){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (s.equals("furniture")){
+            MainActivity.this.setTitle(R.string.nav_item_edit_furniture);
+            fragmentManager.beginTransaction().
+                    replace(R.id.fragment, new FurnitureEditFragment()).commit();
+        }
+        else if (s.equals("options")){
+            MainActivity.this.setTitle(R.string.nav_item_edit_options);
+            fragmentManager.beginTransaction().
+                    replace(R.id.fragment, new OptionsEditFragment()).commit();
+        }
+    }
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -271,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case R.id.nav_add_furniture:
                     MainActivity.this.setTitle(R.string.nav_item_add_furniture);
                     fragmentManager.beginTransaction().
-                            replace(R.id.fragment, new FurnitureActionFragment()).commit();
+                            replace(R.id.fragment, new FurnitureAddFragment()).commit();
                     break;
                 case R.id.nav_options:
                     MainActivity.this.setTitle(R.string.nav_item_options);
@@ -281,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case R.id.nav_add_options:
                     MainActivity.this.setTitle(R.string.nav_item_add_options);
                     fragmentManager.beginTransaction().
-                            replace(R.id.fragment, new OptionsActionFragment()).commit();
+                            replace(R.id.fragment, new OptionsAddFragment()).commit();
                     break;
                 case R.id.nav_manage:
                     MainActivity.this.setTitle(R.string.nav_item_edit_profile);
